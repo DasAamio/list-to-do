@@ -1,20 +1,13 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
-  /*
-  ** Nuxt rendering mode
-  ** See https://nuxtjs.org/api/configuration-mode
-  */
-  mode: 'universal',
+  // Disable server-side rendering (https://go.nuxtjs.dev/ssr-mode)
+  ssr: false,
   /*
   ** Nuxt target
   ** See https://nuxtjs.org/api/configuration-target
   */
-  target: 'server',
-  /*
-  ** Headers of the page
-  ** See https://nuxtjs.org/api/configuration-head
-  */
+  target: 'static',
   head: {
     titleTemplate: '%s - ' + process.env.npm_package_name,
     title: process.env.npm_package_name || '',
@@ -37,7 +30,6 @@ export default {
   ** https://nuxtjs.org/guide/plugins
   */
   plugins: [
-    `~/plugins/user.server.js`
   ],
   /*
   ** Auto import components
@@ -48,27 +40,17 @@ export default {
   ** Nuxt.js dev-modules
   */
   buildModules: [
-    '@nuxtjs/vuetify',
-    // With options
-    ['@nuxtjs/vuetify', { /* module options */ }]
+    '@nuxtjs/vuetify'
   ],
   /*
   ** Nuxt.js modules
   */
   modules: [
-    "@nuxtjs/apollo"
   ],
   /*
   ** vuetify module configuration
   ** https://github.com/nuxt-community/vuetify-module
   */
-  apollo: {
-    clientConfigs: {
-      default: {
-        httpEndpoint: process.env.SERVICE_HUB_ENDPOINT
-      }
-    }
-  },
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
@@ -85,11 +67,5 @@ export default {
         }
       }
     }
-  },
-  /*
-  ** Build configuration
-  ** See https://nuxtjs.org/api/configuration-build/
-  */
-  build: {
   }
 }

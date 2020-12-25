@@ -9,7 +9,7 @@
           <v-text-field class="white--text" color="white" label="Last Name" type="text" v-model="lastName"></v-text-field>
           <v-text-field class="white--text" color="white" label="email" type="email" v-model="email"></v-text-field>
           <v-text-field class="white--text" color="white" label="phone number" type="" v-model="phoneNumber"></v-text-field>
-          <v-text-field color="white" label="password" type="password" v-model="passsword"></v-text-field>
+          <v-text-field color="white--text" label="password" type="password" v-model="passsword"></v-text-field>
           <v-row >
             <v-col></v-col>
             <v-col>

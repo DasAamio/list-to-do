@@ -1,22 +1,19 @@
 <template>
-  <v-main>
     <v-app>
-      <welcome-page-nav/>
-      <v-main>
+      <navbar/>
+      <v-main class="grey lighten-4">
           <nuxt/>
       </v-main>
-      <welcome-page-footer/>
+      <Footer/>
     </v-app>
-  </v-main>
 </template>
 
 <script>
-import WelcomePageNav from "../components/LandingPage/WelcomePageNav";
-import {WelcomePageFooter} from "../.nuxt/components";
 
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 export default {
-  components:{WelcomePageNav,
-    WelcomePageFooter}
+  components:{Footer, Navbar}
 }
 </script>
 <style scoped>

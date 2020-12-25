@@ -1,91 +1,177 @@
 <template>
-  <div>
-    <!--carousel starting-->
+  <div class="dashboard">
+    <h4 class="subheading grey--text pa-5">Dashboard</h4>
 
-    <landing-page-carousel/>
-
-    <!--carousel Ending-->
-
-    <landing-page-get-service/>
-
-
-    <!--About Us Starting-->
-
-    <landing-page-about-us/>
-
-    <!--About Us Ending-->
+<div class="ml-4">
+  <v-btn color="primary" small  to="/Details"> Details </v-btn>
+</div>
 
 
 
-    <!--How to Get Service-->
+      <v-container class="">
 
-    <landing-page-services/>
+        <v-layout row class="my-5">
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+              <v-btn small text color="grey"
+                     @click="sortBy('title')"
+                     v-bind="attrs" v-on="on">
+                <v-icon left small>
+                  mdi-folder
+                </v-icon>
+                <span class="caption text-lowercase">By project Name</span>
+              </v-btn>
+          </template>
+          <span>Sort project by project name</span>
+        </v-tooltip>
+          <v-tooltip top>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn small text color="grey"
+                     @click="sortBy('due')"
+                     v-bind="attrs" v-on="on">
+                <v-icon left small>
+                  mdi-calendar
+                </v-icon>
+                <span class="caption text-lowercase">By Date</span>
+              </v-btn>
+            </template>
+            <span>Sort project by Date</span>
+          </v-tooltip>
+          <v-spacer></v-spacer>
+          <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              @keypress="sortBy('title' || 'due' || 'person')"
+              label="Search"
+              single-line
+              hide-details
 
-    <!--How to Get Service-->
-
-
-    <!--We Provide starting-->
-
-
-
-    <!--We Provide Ending-->
-
-    <landing-page-faq/>
+          ></v-text-field>
+        </v-layout>
 
 
 
-    <!--Our service hub User-->
+        <v-card
+            flat color="px-3"
+            v-for="project in projects"
+            :key="project"
+            :search="search"
 
-    <landing-page-service-user/>
+        >
+            <v-layout row wrap
+                      :class="`pa-3 project ${ project.status }`"
+                      :page.sync="page"
+                      :items-per-page="itemsPerPage"
+                      @page-count="pageCount = $event"
 
-    <!--Our service hub User-->
+            >
+              <v-flex xs12 md4>
+                <div class="caption grey--text">List title</div>
+                <div>{{ project.title }}</div>
+              </v-flex>
+              <v-flex xs6 sm-3 md2>
+                <div class="caption grey--text">Person</div>
+                <div class=" ">{{ project.person }}</div>
+              </v-flex>
 
-    <!--FAQ-->
+              <v-flex xs6 sm-3 md2>
+                <div class="caption grey--text">Due by</div>
+                <div class=" "> {{ project.due }} </div>
+              </v-flex>
 
+              <v-flex xs6 sm-3 md2>
+                <div class="caption grey--text">Status</div>
+                <div >
+                  <v-chip small :class="`${project.status} white--text caption mt-2`">
+                    {{project.status}}
+                  </v-chip>
+                </div>
+              </v-flex>
 
-    <!--FAQ-->
+              <v-flex xs6 sm-3 md2>
+                <div class="caption grey--text">Action</div>
 
-
-
-
-    <!--contact Page starting-->
-
-    <landing-page-contact/>
-
-    <!--contact Page starting-->
-
+                  <v-btn icon x-small ><v-icon small>{{project.action1}}</v-icon></v-btn>
+                  <v-btn icon x-small ><v-icon small>{{project.action2}}</v-icon></v-btn>
+<!--
+                  <delete-popup/>-->
+              </v-flex>
+            </v-layout>
+          <v-divider></v-divider>
+        </v-card>
+        <v-pagination
+            class="pt-5"
+            color="primary"
+            v-model="page"
+            :length="pageCount"
+        ></v-pagination>
+        <v-text-field
+            :value="itemsPerPage"
+            label="Items per page"
+            type="number"
+            min="-1"
+            max="15"
+            @input="itemsPerPage = parseInt($event, 3)"
+        ></v-text-field>
+      </v-container>
   </div>
 </template>
 
 <script>
 
-import LandingPageCarousel from "@/components/LandingPage/LandingPageCarousel";
-import LandingPageAboutUs from "@/components/LandingPage/LandingPageAboutUs";
-import LandingPageServices from "@/components/LandingPage/LandingPageServices";
-import LandingPageGetService from "@/components/LandingPage/LandingPageGetService";
-import LandingPageServiceUser from "@/components/LandingPage/LandingPageServiceUser";
-import LandingPageContact from "@/components/LandingPage/LandingPageContact";
-import LandingPageFaq from "@/components/LandingPage/LandingPageFaq";
-
+import DeletePopup from "../components/deletePopup";
+import EditList from "../components/EditListPopup";
 export default {
   name: "WelComePage",
   components:{
-    LandingPageCarousel,
-    LandingPageAboutUs,
-    LandingPageServices,
-    LandingPageGetService,
-    LandingPageServiceUser,
-    LandingPageContact,
-    LandingPageFaq
+    EditList,
+    DeletePopup
   },
   data() {
     return {
-      input: "",
-      model: 0,
+      search: '',
+      page: 1,
+      pageCount: 0,
+      itemsPerPage: 3,
+      delete: false,
+      projects: [
+        {title: 'Design a new website', person: 'The net ninja', due: '1st Jan 2020', status: 'ongoing', action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design a new website', person: 'Chun li', due: '10th Jan 2020', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design video thumbnail', person: 'Ryu', due: '20th Dec 2019', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design a new website', person: 'Gouken', due: '20th Oct jan 2019', status: 'overdue',action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design a new website', person: 'The net ninja', due: '1st Jan 2020', status: 'ongoing',action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design a new website', person: 'Chun li', due: '10th Jan 2020', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design video thumbnail', person: 'Ryu', due: '20th Dec 2019', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
+        {title: 'Design a new website', person: 'Gouken', due: '20th Oct jan 2019', status: 'overdue',action1: 'mdi-pencil', action2: 'mdi-delete'},
+      ]
+    }
+  },
+  methods:{
+    sortBy(prop){
+      this.projects.sort((a,b) => a[prop] < b[prop] ? -1 : 1)
+
     }
   }
 }
 </script>
 
 <style scoped>
+ .project.complete {
+    border-left: 4px solid #3cd1c2;
+}
+ .project.ongoing{
+   border-left: 4px solid orange;
+ }
+ .project.overdue{
+   border-left: 4px solid tomato;
+ }
+ .v-chip.complete {
+   background: #3cd1c2;
+ }
+ .v-chip.ongoing{
+   background: orange;
+ }
+ .v-chip.overdue{
+   background: tomato;
+ }
 </style>

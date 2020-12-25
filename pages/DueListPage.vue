@@ -1,12 +1,12 @@
 <template>
-<v-app>
-  <nuxt/>
-</v-app>
+<div>
+  <h3>Hey do your due work</h3>
+</div>
 </template>
 
 <script>
 export default {
-name: "AuthLayout"
+name: "DewListPage"
 }
 </script>
 
