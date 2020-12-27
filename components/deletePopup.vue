@@ -28,7 +28,7 @@
         <v-card-actions class="justify-end">
           <v-btn
               text
-              @click="dialog.value = false"
+              @click="deleteDialog = false"
           >Close</v-btn>
         </v-card-actions>
       </v-card>

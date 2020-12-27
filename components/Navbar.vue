@@ -27,29 +27,62 @@
         </template>
         <AddPopup v-if="dialog"/>
         <v-spacer></v-spacer>
-        <p class="mt-7 mr-5 white--text"><span class="font-weight-bold"> Time:</span>
-          <span class="font-weight-light">{{ new Date().toISOString().substr(0, 10) }}</span>
+        <p class="mt-7 mr-5 white--text"><span class="font-weight-bold">
+          <v-btn small icon>
+            <v-icon color="white">mdi-clock</v-icon>
+          </v-btn>
+          Time:</span>
+          <span style="font-weight: 100">{{ new Date().toISOString().substr(0, 10) }}</span>
         </p>
         <p class="mt-7 mr-5 white--text">
-          <span class="font-weight-bold white--text"> Date:</span>
-          <span class="font-weight-light">{{ new Date().toISOString().substr(0, 10) }}</span>
+          <span class="font-weight-bold white--text">
+            <v-btn small icon>
+            <v-icon color="white">mdi-calendar</v-icon>
+          </v-btn> Date:</span>
+          <span style="font-weight: 100">{{ new Date().toISOString().substr(0, 10) }}</span>
         </p>
         <v-badge
             bordered
             color="error"
             content="1"
-
+            overlap
             class="mt-2 mr-5"
         >
-          <v-icon color="white">mdi-bell</v-icon>
+          <v-menu
+              bottom
+              left
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                  dark
+                  icon
+                  small
+                  v-bind="attrs"
+                  v-on="on"
+              >
+                <v-icon>mdi-bell</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list>
+              <v-list-item
+                  v-for="(item, i) in items"
+                  :key="i"
+                  :to="item.route"
+              >
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
         </v-badge>
 
       </v-toolbar>
-      <v-navigation-drawer v-model="drawer" app class="primary">
-        <div class="grey lighten-4" style="height: 80px">
-          <div class="mt-3 ml-3 pt-3">
-            <span class="primary--text font-weight-bold text-uppercase">List-to-do</span>
-            <v-btn icon small color="primary" class="float-right mr-3" @click="drawer = !drawer">
+      <v-navigation-drawer v-model="drawer" app class="blue">
+        <div class="blue lighten-2" style="height: 80px">
+          <div class="ml-3 pt-3">
+            <span class="white--text font-weight-bold text-uppercase">List-to-do</span>
+            <v-btn icon small color="white" class="float-right mr-3" @click="drawer = !drawer">
               <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
           </div>
@@ -57,7 +90,7 @@
 
         </div>
         <v-list>
-          <v-list-item v-for="link in links" :key="link" :to="link.route">
+          <v-list-item v-for="(link,index) in links" :key="index" :to="link.route">
             <v-list-item-action>
               <v-icon class="white--text">{{ link.icon }}</v-icon>
             </v-list-item-action>
@@ -90,7 +123,13 @@ export default {
         {icon: 'mdi-view-list', text: 'Important List', route: '/ImportantListPage'},
         {icon: 'mdi-view-list', text: 'Due List', route: '/DueListPage'},
         {icon: 'mdi-view-list', text: 'Done List', route: '/DoneListPage'}
-      ]
+      ],
+      items: [
+        {title: 'Due List', route: '/DueListPage'},
+        {title: 'Due List', route: '/DueListPage'},
+        {title: 'Due List', route: '/DueListPage'},
+        {title: 'Due List', route: '/DueListPage'}
+      ],
     }
   }
 }
