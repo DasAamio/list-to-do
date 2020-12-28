@@ -26,9 +26,9 @@
               <div class="primary--text"><span class="font-weight-bold">Time: </span><span>8:30 pm</span></div>
             </v-col>
             <v-col cols="4">
-              <div class="primary--text"><span class="font-weight-bold">Priority: </span>
+              <div class="primary--text"><span class="font-weight-bold">Status: </span>
                 <span>
-                  <v-chip class="red white--text">Imporatnt</v-chip>
+                  <v-chip class="white--text" style="background: tomato">ongoing</v-chip>
                 </span></div>
             </v-col>
           </v-row>

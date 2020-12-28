@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <h4 class="subheading grey--text pa-5">Dashboard</h4>
+    <h4 class="subheading grey--text pa-5">All List</h4>
     <v-container class="">
       <v-layout row class="my-5">
         <v-tooltip top>
@@ -83,7 +83,7 @@
 
             <v-dialog
                 v-model="editDialog"
-                max-width="300px"
+                max-width="600px"
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -95,37 +95,142 @@
                   <v-icon small>{{ project.action1 }}</v-icon>
                 </v-btn>
               </template>
-              <v-card>
-                <v-card-title>
-                  Edit List
+              <v-card class="pb-1">
+                <v-card-title class="heading primary white--text">
+                  Edit Todo List
                 </v-card-title>
+                <div class="pa-5 pb-0">
+                  <v-text-field label="Project Name" :rules="nameRules" placeholder="Project Name" outlined></v-text-field>
+                  <v-textarea label="Project Description" :rules="description" placeholder="Project Description" outlined></v-textarea>
+                  <v-row>
+                    <v-col cols="6 py-0">
+                      <v-menu
+                          v-model="menu1"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="290px"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                              v-model="date"
+                              label="Picker without buttons"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              :rules="Date"
+                              v-bind="attrs"
+                              v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker
+                            v-model="date"
+                            @input="menu1 = false"
+                        ></v-date-picker>
+                      </v-menu>
+                    </v-col>
+                    <v-col cols="6 py-0">
+                      <v-menu
+                          ref="menu"
+                          v-model="menu2"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          :return-value.sync="time"
+                          transition="scale-transition"
+                          offset-y
+                          max-width="290px"
+                          min-width="290px"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                              v-model="time"
+                              label="Picker in menu"
+                              prepend-icon="mdi-clock-time-four-outline"
+                              readonly
+                              v-bind="attrs"
+                              v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-time-picker
+                            v-if="menu2"
+                            v-model="time"
+                            full-width
+                            @click:minute="$refs.menu.save(time)"
+                        ></v-time-picker>
+                      </v-menu>
+                    </v-col>
+                  </v-row>
+                  <span class="font-weight-bold primary--text">Add Task:</span>
+                  <div class="mt-1">
+                    <v-text-field
+                        class="my-0"
+                        outlined dense
+                        label="Important"
+                        v-for="task in taskList"
+                        :key="task.id"
+                        append-icon="mdi-close"
+                        clearable
+                    >
+                    </v-text-field>
+                  </div>
+                  <div>
+                    <v-btn small class="mb-5 primary" @click="editTask()">Add new Task</v-btn>
+                  </div>
+                </div>
+                <v-card-actions>
+                  <v-btn class="primary white--text"  block @click="snackbar = true">save</v-btn>
+                </v-card-actions>
+
+                <p v-if="projects === 0"> Empty list, you must add list.  </p>
               </v-card>
+              <v-snackbar
+                  v-model="snackbar"
+                  :timeout="timeout"
+              >
+                {{ text }}
+
+                <template v-slot:action="{ attrs }">
+                  <v-btn
+                      color="blue"
+                      text
+                      v-bind="attrs"
+                      @click="snackbar = false"
+                  >
+                    Close
+                  </v-btn>
+                </template>
+              </v-snackbar>
             </v-dialog>
 
 
 
             <v-dialog
-                v-model="editDialog"
-                max-width="300px"
+                v-model="deleteDialog"
+                max-width="400px"
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                     icon x-small
                     v-bind="attrs"
                     v-on="on"
-                    @click="editDialog = !editDialog"
+                    @click="deleteDialog = !deleteDialog"
                 >
                   <v-icon small>{{ project.action2 }}</v-icon>
                 </v-btn>
               </template>
               <v-card>
-                <v-card-title>
+                <v-card-title color="primary">
                   Delete
                 </v-card-title>
+                <v-card-text>
+                  Do you want to delete this list?
+                </v-card-text>
+                <v-card-actions class="mx-auto">
+                  <v-btn small color="primary">Yes</v-btn>
+                  <v-btn small color="error">No</v-btn>
+                </v-card-actions>
               </v-card>
             </v-dialog>
-
-
 
 
 
@@ -164,6 +269,14 @@ export default {
   },
   data() {
     return {
+      time: '',
+      dialog:true,
+      menu1: false,
+      menu2: false,
+      snackbar: false,
+      text: 'My timeout is set to 2000.',
+      timeout: 2000,
+      taskList: [{id: 0, checked: false, task: ''}],
       deleteDialog: false,
       search: '',
       page: 1,
@@ -242,8 +355,14 @@ export default {
     sortBy(prop) {
       this.projects.sort((a, b) => a[prop] < b[prop] ? -1 : 1)
 
-    }
-  }
+    },
+    editTask() {
+        this.taskList.push({
+          id: this.taskList.length, checked: false, task: ''
+        })
+      }
+
+}
 }
 </script>
 

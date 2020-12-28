@@ -32,7 +32,7 @@
             <v-icon color="white">mdi-clock</v-icon>
           </v-btn>
           Time:</span>
-          <span style="font-weight: 100">{{ new Date().toISOString().substr(0, 10) }}</span>
+          <span style="font-weight: 100">{{ moment().format('hh:mm:ssA') }}</span>
         </p>
         <p class="mt-7 mr-5 white--text">
           <span class="font-weight-bold white--text">
@@ -109,20 +109,20 @@
 <script>
 import Drawer from "./Drawer";
 import AddPopup from "./AddPopup";
-
+let moment = require('moment');
 export default {
+
   name: "Navbar",
   components: {Drawer, AddPopup},
   data() {
     return {
+      moment: moment,
       dialog: false,
       drawer: false,
       links: [
-        {icon: 'mdi-view-dashboard', text: 'Dashboard', route: '/'},
-        {icon: 'mdi-view-list', text: 'All List', route: '/AllListPage'},
-        {icon: 'mdi-view-list', text: 'Important List', route: '/ImportantListPage'},
+        {icon: 'mdi-view-dashboard', text: 'All List', route: '/'},
         {icon: 'mdi-view-list', text: 'Due List', route: '/DueListPage'},
-        {icon: 'mdi-view-list', text: 'Done List', route: '/DoneListPage'}
+        {icon: 'mdi-view-list', text: 'Completed List', route: '/DoneListPage'}
       ],
       items: [
         {title: 'Due List', route: '/DueListPage'},
