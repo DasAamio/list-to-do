@@ -1,139 +1,180 @@
 <template>
-  <div>
+  <div v-if="!isLoading">
     <h4 class="subheading grey--text pa-5">Due</h4>
-      <v-container class="">
+    <v-container class="">
 
-        <v-layout row class="my-5">
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn small text color="grey"
-                     @click="sortBy('title')"
-                     v-bind="attrs" v-on="on">
-                <v-icon left small>
-                  mdi-folder
-                </v-icon>
-                <span class="caption text-lowercase">By project Name</span>
-              </v-btn>
-            </template>
-            <span>Sort project by project name</span>
-          </v-tooltip>
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn small text color="grey"
-                     @click="sortBy('due')"
-                     v-bind="attrs" v-on="on">
-                <v-icon left small>
-                  mdi-calendar
-                </v-icon>
-                <span class="caption text-lowercase">By Date</span>
-              </v-btn>
-            </template>
-            <span>Sort project by Date</span>
-          </v-tooltip>
-          <v-spacer></v-spacer>
-          <v-text-field
-              class="mx-3"
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Search"
-              single-line
-              hide-details
+      <v-layout row class="my-5">
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn small text color="grey"
+                   @click="sortBy('title')"
+                   v-bind="attrs" v-on="on">
+              <v-icon left small>
+                mdi-folder
+              </v-icon>
+              <span class="caption text-lowercase">By project Name</span>
+            </v-btn>
+          </template>
+          <span>Sort project by project name</span>
+        </v-tooltip>
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn small text color="grey"
+                   @click="sortBy('deadline')"
+                   v-bind="attrs" v-on="on">
+              <v-icon left small>
+                mdi-calendar
+              </v-icon>
+              <span class="caption text-lowercase">By Date</span>
+            </v-btn>
+          </template>
+          <span>Sort project by Date</span>
+        </v-tooltip>
+        <v-spacer></v-spacer>
+        <v-text-field
+            class="mx-3"
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
 
-          ></v-text-field>
-        </v-layout>
+        ></v-text-field>
+      </v-layout>
 
 
+      <v-card
+          flat color="px-3"
+          v-for="due in pageData"
+          :key="due"
+          :search="search"
 
-        <v-card
-            flat color="px-3"
-            v-for="due in dueProjects"
-            :key="due"
-            :search="search"
+      >
+        <v-layout row wrap
+                  :class="`pa-3 due ${ due.status }`"
+                  :page.sync="page"
+                  :items-per-page="itemsPerPage"
+                  @page-count="pageCount = $event"
 
         >
-          <v-layout row wrap
-                    :class="`pa-3 due ${ due.status }`"
-                    :page.sync="page"
-                    :items-per-page="itemsPerPage"
-                    @page-count="pageCount = $event"
+          <v-flex xs12 md6>
+            <div class="caption grey--text">List title</div>
+            <div>{{ due.title }}</div>
+          </v-flex>
 
-          >
-            <v-flex xs12 md4>
-              <div class="caption grey--text">List title</div>
-              <div>{{ due.title }}</div>
-            </v-flex>
-            <v-flex xs6 sm-3 md2>
-              <div class="caption grey--text">Person</div>
-              <div>{{ due.person }}</div>
-            </v-flex>
+          <v-flex xs6 sm-4 md2>
+            <div class="caption grey--text">Due by</div>
+            <div> {{ moment(due.deadline).format('MMMM Do YYYY, h:mm a') }}</div>
+          </v-flex>
 
-            <v-flex xs6 sm-3 md2>
-              <div class="caption grey--text">Due by</div>
-              <div> {{ due.due }} </div>
-            </v-flex>
+          <v-flex xs6 sm-4 md2>
+            <div class="caption grey--text">Status</div>
+            <div>
+              <v-chip small :class="`${due.status} white--text caption mt-2`">
+                {{ due.status }}
+              </v-chip>
+            </div>
+          </v-flex>
 
-            <v-flex xs6 sm-3 md2>
-              <div class="caption grey--text">Status</div>
-              <div >
-                <v-chip small :class="`${due.status} white--text caption mt-2`">
-                  {{due.status}}
-                </v-chip>
-              </div>
-            </v-flex>
+          <v-flex xs6 sm-4 md2>
+            <div class="caption grey--text">Action</div>
 
-            <v-flex xs6 sm-3 md2>
-              <div class="caption grey--text">Action</div>
+            <v-btn
+                icon x-small
+                @click="$nuxt.$emit('toggleEditListPopup', due)"
+            >
+              <v-icon small>mdi-pencil</v-icon>
+            </v-btn>
 
-              <v-btn icon x-small ><v-icon small>{{due.action1}}</v-icon></v-btn>
-              <v-btn icon x-small ><v-icon small>{{due.action2}}</v-icon></v-btn>
-              <v-btn justify="center" align="center" color="primary" text x-small  to="/Details"> Details </v-btn>
-              <!--
-                                <delete-popup/>-->
-            </v-flex>
-          </v-layout>
-          <v-divider></v-divider>
-        </v-card>
-        <v-pagination
-            class="pt-5"
-            color="primary"
-            v-model="page"
-            :length="pageCount"
-        ></v-pagination>
-        <!--<v-text-field
-            :value="itemsPerPage"
-            label="Items per page"
-            type="number"
-            min="-1"
-            max="15"
-            @input="itemsPerPage = parseInt($event, 3)"
-        ></v-text-field>-->
-      </v-container>
+            <v-btn
+                icon x-small
+                @click="$nuxt.$emit('toggleDeleteListPopup', due)"
+            >
+              <v-icon small>mdi-delete</v-icon>
+            </v-btn>
+            <v-btn justify="center" align="center" color="primary" text x-small :to="`/details/${due._id}`"> Details
+            </v-btn>
+
+            <!--
+                              <delete-popup/>-->
+          </v-flex>
+        </v-layout>
+        <v-divider></v-divider>
+      </v-card>
+      <v-pagination
+          v-if="totalPages !== 0"
+          class="pt-5"
+          color="primary"
+          v-model="page"
+          :length="totalPages"
+      ></v-pagination>
+      <v-row v-else>
+        <v-col align="center" class="grey--text">
+          {{ projectsByStatus.length > 0 ? 'No Data Matched' : 'No Data' }}
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
+  <div v-else>
+    <v-skeleton-loader
+        class=" my-10 mx-auto px-10 pt-3"
+        type="table"
+    />
   </div>
 </template>
 
 <script>
+import {mapGetters, mapActions} from 'vuex'
 import DeletePopup from "../components/deletePopup";
 import EditList from "../components/EditListPopup";
+
 export default {
   name: "DoneListPage",
-  components:{DeletePopup,EditList},
+  components: {DeletePopup, EditList},
   data() {
     return {
+      isLoading: false,
       search: '',
       page: 1,
-      pageCount: 0,
-      itemsPerPage: 3,
-      delete: false,
-      dueProjects: [
-        {title: 'Design a new website', person: 'The net ninja', due: '1st Jan 2020', status: 'ongoing', action1: 'mdi-pencil', action2: 'mdi-delete'},
-        {title: 'Design a new website', person: 'Gouken', due: '20th Oct jan 2019', status: 'overdue',action1: 'mdi-pencil', action2: 'mdi-delete'},
-      ]
+      pageData: [],
+      itemsPerPage: 5,
+      delete: false
     }
   },
-  methods:{
-    sortBy(prop){
-      this.dueProjects.sort((a,b) => a[prop] < b[prop] ? -1 : 1)
+  async created() {
+    this.isLoading = true
+    await this.requestGetProjectByStatus({$axios: this.$axios, status: 'overdue'})
+    this.currentPageData()
+    this.isLoading = false
+  },
+  watch: {
+    search(newValue) {
+      this.currentPageData(newValue)
+    },
+    page(newValue){
+      this.currentPageData()
+    }
+  },
+  computed: {
+    ...mapGetters('projects', ['projectsByStatus']),
+    totalPages() {
+      return Math.ceil( this.search === undefined || this.search === '' ? this.projectsByStatus.length / this.itemsPerPage : this.pageData.length / this.itemsPerPage)
+    }
+  },
+  methods: {
+    ...mapActions('projects', ['requestGetProjectByStatus']),
+    sortBy(prop) {
+      this.pageData.sort((a, b) => a[prop] < b[prop] ? -1 : 1)
 
+    },
+    currentPageData(searchQuery) {
+      if (searchQuery !== undefined && searchQuery !== '') {
+        this.pageData = this.projectsByStatus.filter((project) => {
+          return project.title.match(searchQuery)
+        })
+      } else {
+        this.pageData = this.projectsByStatus.slice((this.page - 1) * this.itemsPerPage, (this.page * this.itemsPerPage))
+      }
     }
   }
 }
@@ -143,19 +184,24 @@ export default {
 .project.complete {
   border-left: 4px solid #3cd1c2;
 }
-.project.ongoing{
+
+.project.ongoing {
   border-left: 4px solid orange;
 }
-.project.overdue{
+
+.project.overdue {
   border-left: 4px solid tomato;
 }
+
 .v-chip.complete {
   background: #3cd1c2;
 }
-.v-chip.ongoing{
+
+.v-chip.ongoing {
   background: orange;
 }
-.v-chip.overdue{
+
+.v-chip.overdue {
   background: tomato;
 }
 </style>

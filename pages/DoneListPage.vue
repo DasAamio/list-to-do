@@ -1,6 +1,6 @@
 <template>
-<div>
-  <h4 class="subheading grey--text pa-5">Completed</h4>
+  <div v-if="!isLoading">
+    <h4 class="subheading grey--text pa-5">Completed</h4>
     <v-container class="">
 
       <v-layout row class="my-5">
@@ -43,13 +43,10 @@
       </v-layout>
 
 
-
       <v-card
           flat color="px-3"
-          v-for="project in projects"
+          v-for="project in pageData"
           :key="project"
-          :search="search"
-
       >
         <v-layout row wrap
                   :class="`pa-3 project ${ project.status }`"
@@ -58,25 +55,21 @@
                   @page-count="pageCount = $event"
 
         >
-          <v-flex xs12 md4>
+          <v-flex xs12 md6>
             <div class="caption grey--text">List title</div>
             <div>{{ project.title }}</div>
-          </v-flex>
-          <v-flex xs6 sm-3 md2>
-            <div class="caption grey--text">Person</div>
-            <div>{{ project.person }}</div>
           </v-flex>
 
           <v-flex xs6 sm-3 md2>
             <div class="caption grey--text">Due by</div>
-            <div> {{ project.due }} </div>
+            <div>{{ moment(project.deadline).format('MMMM Do YYYY, h:mm a') }}</div>
           </v-flex>
 
           <v-flex xs6 sm-3 md2>
             <div class="caption grey--text">Status</div>
-            <div >
+            <div>
               <v-chip small :class="`${project.status} white--text caption mt-2`">
-                {{project.status}}
+                {{ project.status }}
               </v-chip>
             </div>
           </v-flex>
@@ -84,9 +77,21 @@
           <v-flex xs6 sm-3 md2>
             <div class="caption grey--text">Action</div>
 
-            <v-btn icon x-small ><v-icon small>{{project.action1}}</v-icon></v-btn>
-            <v-btn icon x-small ><v-icon small>{{project.action2}}</v-icon></v-btn>
-            <v-btn justify="center" align="center" color="primary" text x-small  to="/Details"> Details </v-btn>
+            <v-btn
+                icon x-small
+                @click="$nuxt.$emit('toggleEditListPopup', project)"
+            >
+              <v-icon small>mdi-pencil</v-icon>
+            </v-btn>
+
+            <v-btn
+                icon x-small
+                @click="$nuxt.$emit('toggleDeleteListPopup', project)"
+            >
+              <v-icon small>mdi-delete</v-icon>
+            </v-btn>
+
+            <v-btn justify="center" align="center" color="primary" text x-small :to="`/details/${project._id}`"> Details</v-btn>
             <!--
                               <delete-popup/>-->
           </v-flex>
@@ -94,48 +99,78 @@
         <v-divider></v-divider>
       </v-card>
       <v-pagination
+          v-if="totalPages !== 0"
           class="pt-5"
           color="primary"
           v-model="page"
-          :length="pageCount"
+          :length="totalPages"
       ></v-pagination>
-      <!--<v-text-field
-          :value="itemsPerPage"
-          label="Items per page"
-          type="number"
-          min="-1"
-          max="15"
-          @input="itemsPerPage = parseInt($event, 3)"
-      ></v-text-field>-->
+      <v-row v-else>
+        <v-col align="center" class="grey--text">
+          {{ projectsByStatus.length > 0 ? 'No Data Matched' : 'No Data' }}
+        </v-col>
+      </v-row>
     </v-container>
-</div>
+  </div>
+  <div v-else>
+    <v-skeleton-loader
+        class=" my-10 mx-auto px-10 pt-3"
+        type="table"
+    />
+  </div>
 </template>
 
 <script>
 import DeletePopup from "../components/deletePopup";
 import EditList from "../components/EditListPopup";
+import {mapActions, mapGetters} from "vuex";
+
 export default {
-name: "DoneListPage",
-  components:{DeletePopup,EditList},
+  name: "DoneListPage",
+  components: {DeletePopup, EditList},
   data() {
     return {
+      isLoading: false,
       search: '',
       page: 1,
-      pageCount: 0,
-      itemsPerPage: 3,
-      delete: false,
-      projects: [
-        {title: 'Design a new website', person: 'Chun li', due: '10th Jan 2020', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
-        {title: 'Design video thumbnail', person: 'Ryu', due: '20th Dec 2019', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
-        {title: 'Design a new website', person: 'Chun li', due: '10th Jan 2020', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
-        {title: 'Design video thumbnail', person: 'Ryu', due: '20th Dec 2019', status: 'complete',action1: 'mdi-pencil', action2: 'mdi-delete'},
-      ]
+      pageData: [],
+      itemsPerPage: 5,
+      delete: false
     }
   },
-  methods:{
-    sortBy(prop){
-      this.projects.sort((a,b) => a[prop] < b[prop] ? -1 : 1)
-
+  async created() {
+    this.isLoading = true
+    await this.requestGetProjectByStatus({$axios: this.$axios, status: 'complete'})
+    this.currentPageData()
+    this.isLoading = false
+  },
+  watch: {
+    search(newValue) {
+      this.currentPageData(newValue)
+    },
+    page(newValue){
+      this.currentPageData()
+    }
+  },
+  computed: {
+    ...mapGetters('projects', ['projectsByStatus']),
+    totalPages() {
+      return Math.ceil( this.search === undefined || this.search === '' ? this.projectsByStatus.length / this.itemsPerPage : this.pageData.length / this.itemsPerPage)
+    }
+  },
+  methods: {
+    ...mapActions('projects', ['requestGetProjectByStatus']),
+    sortBy(prop) {
+      this.pageData.sort((a, b) => a[prop] < b[prop] ? -1 : 1)
+    },
+    currentPageData(searchQuery) {
+      if (searchQuery !== undefined && searchQuery !== '') {
+        this.pageData = this.projectsByStatus.filter((project) => {
+          return project.title.match(searchQuery)
+        })
+      } else {
+        this.pageData = this.projectsByStatus.slice((this.page - 1) * this.itemsPerPage, (this.page * this.itemsPerPage))
+      }
     }
   }
 }
@@ -145,19 +180,24 @@ name: "DoneListPage",
 .project.complete {
   border-left: 4px solid #3cd1c2;
 }
-.project.ongoing{
+
+.project.ongoing {
   border-left: 4px solid orange;
 }
-.project.overdue{
+
+.project.overdue {
   border-left: 4px solid tomato;
 }
+
 .v-chip.complete {
   background: #3cd1c2;
 }
-.v-chip.ongoing{
+
+.v-chip.ongoing {
   background: orange;
 }
-.v-chip.overdue{
+
+.v-chip.overdue {
   background: tomato;
 }
 </style>

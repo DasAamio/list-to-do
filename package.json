@@ -9,8 +9,12 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
+    "@nuxtjs/axios": "^5.12.4",
     "moment": "^2.29.1",
-    "nuxt": "^2.14.7"
+    "nuxt": "^2.14.7",
+    "vue-timers": "^2.0.4",
+    "vuetify-datetime-picker": "^2.1.1",
+    "vuex-persistedstate": "^4.0.0-beta.1"
   },
   "devDependencies": {
     "@nuxtjs/vuetify": "^1.11.2",

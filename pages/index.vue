@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard">
+  <div v-if="!isLoading" class="dashboard">
     <h4 class="subheading grey--text pa-5">All List</h4>
     <v-container class="">
       <v-layout row class="my-5">
@@ -19,7 +19,7 @@
         <v-tooltip top>
           <template v-slot:activator="{ on, attrs }">
             <v-btn small text color="grey"
-                   @click="sortBy('due')"
+                   @click="sortBy('deadline')"
                    v-bind="attrs" v-on="on">
               <v-icon left small>
                 mdi-calendar
@@ -31,21 +31,19 @@
         </v-tooltip>
         <v-spacer></v-spacer>
         <v-text-field
-            class="mx-3"
             v-model="search"
+            class="mx-3"
             append-icon="mdi-magnify"
             label="Search"
             single-line
             hide-details
-
         ></v-text-field>
       </v-layout>
 
       <v-card
           flat color="px-3"
-          v-for="project in projects"
-          :key="project"
-          :search="search"
+          v-for="project in pageData"
+          :key="project._id"
       >
         <v-layout row wrap
                   :class="`pa-3 project ${ project.status }`"
@@ -54,21 +52,21 @@
                   @page-count="pageCount = $event"
 
         >
-          <v-flex xs12 md4>
+          <v-flex xs12 md6>
             <div class="caption grey--text">List title</div>
             <div>{{ project.title }}</div>
           </v-flex>
-          <v-flex xs6 sm-3 md2>
-            <div class="caption grey--text">Person</div>
-            <div class=" ">{{ project.person }}</div>
-          </v-flex>
+          <!--          <v-flex xs6 sm-3 md2>
+                      <div class="caption grey&#45;&#45;text">Person</div>
+                      <div class=" ">{{ project.person }}</div>
+                    </v-flex>-->
 
-          <v-flex xs6 sm-3 md2>
+          <v-flex xs6 sm-4 md2>
             <div class="caption grey--text">Due by</div>
-            <div class=" "> {{ project.due }}</div>
+            <div class=" "> {{ moment(project.deadline).format('MMMM Do YYYY, h:mm a') }}</div>
           </v-flex>
 
-          <v-flex xs6 sm-3 md2>
+          <v-flex xs6 sm-4 md2>
             <div class="caption grey--text">Status</div>
             <div>
               <v-chip small :class="`${project.status} white--text caption mt-2`">
@@ -77,202 +75,63 @@
             </div>
           </v-flex>
 
-          <v-flex xs6 sm-3 md2>
+          <v-flex xs6 sm-4 md2>
             <div class="caption grey--text ">Action</div>
 
-
-            <v-dialog
-                v-model="editDialog"
-                max-width="600px"
+            <v-btn
+                icon x-small
+                @click="$nuxt.$emit('toggleEditListPopup', project)"
             >
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                    icon x-small
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="editDialog = !editDialog"
-                >
-                  <v-icon small>{{ project.action1 }}</v-icon>
-                </v-btn>
-              </template>
-              <v-card class="pb-1">
-                <v-card-title class="heading primary white--text">
-                  Edit Todo List
-                </v-card-title>
-                <div class="pa-5 pb-0">
-                  <v-text-field label="Project Name" :rules="nameRules" placeholder="Project Name" outlined></v-text-field>
-                  <v-textarea label="Project Description" :rules="description" placeholder="Project Description" outlined></v-textarea>
-                  <v-row>
-                    <v-col cols="6 py-0">
-                      <v-menu
-                          v-model="menu1"
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          transition="scale-transition"
-                          offset-y
-                          min-width="290px"
-                      >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                              v-model="date"
-                              label="Picker without buttons"
-                              prepend-icon="mdi-calendar"
-                              readonly
-                              :rules="Date"
-                              v-bind="attrs"
-                              v-on="on"
-                          ></v-text-field>
-                        </template>
-                        <v-date-picker
-                            v-model="date"
-                            @input="menu1 = false"
-                        ></v-date-picker>
-                      </v-menu>
-                    </v-col>
-                    <v-col cols="6 py-0">
-                      <v-menu
-                          ref="menu"
-                          v-model="menu2"
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          :return-value.sync="time"
-                          transition="scale-transition"
-                          offset-y
-                          max-width="290px"
-                          min-width="290px"
-                      >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                              v-model="time"
-                              label="Picker in menu"
-                              prepend-icon="mdi-clock-time-four-outline"
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                          ></v-text-field>
-                        </template>
-                        <v-time-picker
-                            v-if="menu2"
-                            v-model="time"
-                            full-width
-                            @click:minute="$refs.menu.save(time)"
-                        ></v-time-picker>
-                      </v-menu>
-                    </v-col>
-                  </v-row>
-                  <span class="font-weight-bold primary--text">Add Task:</span>
-                  <div class="mt-1">
-                    <v-text-field
-                        class="my-0"
-                        outlined dense
-                        label="Important"
-                        v-for="task in taskList"
-                        :key="task.id"
-                        append-icon="mdi-close"
-                        clearable
-                    >
-                    </v-text-field>
-                  </div>
-                  <div>
-                    <v-btn small class="mb-5 primary" @click="editTask()">Add new Task</v-btn>
-                  </div>
-                </div>
-                <v-card-actions>
-                  <v-btn class="primary white--text"  block @click="snackbar = true">save</v-btn>
-                </v-card-actions>
+              <v-icon small>mdi-pencil</v-icon>
+            </v-btn>
 
-                <p v-if="projects === 0"> Empty list, you must add list.  </p>
-              </v-card>
-              <v-snackbar
-                  v-model="snackbar"
-                  :timeout="timeout"
-              >
-                {{ text }}
-
-                <template v-slot:action="{ attrs }">
-                  <v-btn
-                      color="blue"
-                      text
-                      v-bind="attrs"
-                      @click="snackbar = false"
-                  >
-                    Close
-                  </v-btn>
-                </template>
-              </v-snackbar>
-            </v-dialog>
-
-
-
-            <v-dialog
-                v-model="deleteDialog"
-                max-width="400px"
+            <v-btn
+                icon x-small
+                @click="$nuxt.$emit('toggleDeleteListPopup', project)"
             >
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                    icon x-small
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="deleteDialog = !deleteDialog"
-                >
-                  <v-icon small>{{ project.action2 }}</v-icon>
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title color="primary">
-                  Delete
-                </v-card-title>
-                <v-card-text>
-                  Do you want to delete this list?
-                </v-card-text>
-                <v-card-actions class="mx-auto">
-                  <v-btn small color="primary">Yes</v-btn>
-                  <v-btn small color="error">No</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
+              <v-icon small>mdi-delete</v-icon>
+            </v-btn>
 
-
-
-            <v-btn justify="center" align="center" color="primary" text x-small to="/Details"> Details</v-btn>
+            <v-btn justify="center" align="center" color="primary" text x-small :to="`/details/${project._id}`">
+              Details
+            </v-btn>
 
           </v-flex>
         </v-layout>
         <v-divider></v-divider>
       </v-card>
       <v-pagination
+          v-if="totalPages !== 0"
           class="pt-5"
           color="primary"
           v-model="page"
-          :length="pageCount"
+          :length="totalPages"
       ></v-pagination>
-      <!--<v-text-field
-          :value="itemsPerPage"
-          label="Items per page"
-          type="number"
-          min="-1"
-          max="15"
-          @input="itemsPerPage = parseInt($event, 3)"
-      ></v-text-field>-->
+      <v-row v-else>
+        <v-col align="center" class="grey--text">
+          {{ projects.length > 0 ? 'No Data Matched' : 'No Data' }}
+        </v-col>
+      </v-row>
     </v-container>
+  </div>
+  <div v-else>
+    <v-skeleton-loader
+        class=" my-10 mx-auto px-10 pt-3"
+        type="table"
+    />
   </div>
 </template>
 
 <script>
-
-import EditList from "../components/EditListPopup";
+import {mapActions, mapGetters} from 'vuex'
 
 export default {
   name: "WelComePage",
-  components: {
-    EditList,
-  },
   data() {
     return {
+      isLoading: false,
       time: '',
-      dialog:true,
-      menu1: false,
-      menu2: false,
+      dialog: true,
       snackbar: false,
       text: 'My timeout is set to 2000.',
       timeout: 2000,
@@ -280,89 +139,45 @@ export default {
       deleteDialog: false,
       search: '',
       page: 1,
-      pageCount: 0,
-      itemsPerPage: 3,
+      pageData: [],
+      itemsPerPage: 5,
       delete: false,
-      projects: [
-        {
-          title: 'Design a new website',
-          person: 'The net ninja',
-          due: '1st Jan 2020',
-          status: 'ongoing',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design a new website',
-          person: 'Chun li',
-          due: '10th Jan 2020',
-          status: 'complete',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design video thumbnail',
-          person: 'Ryu',
-          due: '20th Dec 2019',
-          status: 'complete',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design a new website',
-          person: 'Gouken',
-          due: '20th Oct jan 2019',
-          status: 'overdue',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design a new website',
-          person: 'The net ninja',
-          due: '1st Jan 2020',
-          status: 'ongoing',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design a new website',
-          person: 'Chun li',
-          due: '10th Jan 2020',
-          status: 'complete',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design video thumbnail',
-          person: 'Ryu',
-          due: '20th Dec 2019',
-          status: 'complete',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-        {
-          title: 'Design a new website',
-          person: 'Gouken',
-          due: '20th Oct jan 2019',
-          status: 'overdue',
-          action1: 'mdi-pencil',
-          action2: 'mdi-delete'
-        },
-      ]
+    }
+  },
+  async created() {
+    await this.requestGetAllProject({$axios: this.$axios})
+    this.currentPageData()
+  },
+  watch: {
+    search(newValue) {
+      this.currentPageData(newValue)
+    },
+    page(newValue){
+      this.currentPageData()
+    }
+  },
+  computed: {
+    ...mapGetters('projects', ["projects"]),
+    totalPages() {
+      return Math.ceil( this.search === undefined || this.search === '' ? this.projects.length / this.itemsPerPage : this.pageData.length / this.itemsPerPage)
     }
   },
   methods: {
+    ...mapActions('projects', ['requestGetAllProject']),
     sortBy(prop) {
-      this.projects.sort((a, b) => a[prop] < b[prop] ? -1 : 1)
-
+      this.pageData.sort((a, b) => a[prop] < b[prop] ? -1 : 1)
     },
-    editTask() {
-        this.taskList.push({
-          id: this.taskList.length, checked: false, task: ''
+    currentPageData(searchQuery) {
+      if(searchQuery !== undefined && searchQuery !== '') {
+        this.pageData = this.projects.filter((project) => {
+          return project.title.match(searchQuery)
         })
+      }else {
+        this.pageData = this.projects.slice((this.page - 1) * this.itemsPerPage, (this.page * this.itemsPerPage))
       }
+    }
 
-}
+  }
 }
 </script>
 

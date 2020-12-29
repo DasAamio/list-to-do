@@ -1,49 +1,72 @@
 <template>
-<div>
-  <!--&lt;!&ndash;<v-dialog max-width="600px" v-model="deleteDialog">
-    <v-card>
-      <v-card-title>
-        Do you want to delete this list from your list?
-      </v-card-title>
-      <v-card-text>To delete the data from the queue press yes button.</v-card-text>
-      <v-card-actions class="text-center">
-        <v-btn small color="primary" @click="deleteDialog = !deleteDialog">Yes</v-btn>
-        <v-btn small color="error" @click="deleteDialog = !deleteDialog">No</v-btn>
-      </v-card-actions>
-    </v-card>&ndash;&gt;
-  </v-dialog>-->
   <v-dialog
+      v-model="dialog"
       transition="dialog-top-transition"
       max-width="600"
   >
     <template v-slot:default="dialog">
-      <v-card>
+      <v-card :loading="isLoading">
         <v-toolbar
             color="primary"
             dark
-        >Do you want to delete this list from your list?</v-toolbar>
-        <v-card-text>
-          To delete the data from the queue press yes button.
+        >Delete list?
+        </v-toolbar>
+        <v-card-text class="mt-5">
+          <strong>{{ project.name }}</strong>
+          To delete the data from the queue press DELETE button.
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn
               text
-              @click="deleteDialog = false"
-          >Close</v-btn>
+              @click="dialog = false"
+          >Close
+          </v-btn>
+          <v-btn
+              text
+              color="error"
+              @click="deleteList()"
+          >Delete
+          </v-btn>
         </v-card-actions>
       </v-card>
     </template>
   </v-dialog>
-</div>
 </template>
 
 <script>
+import {mapActions} from 'vuex'
+
 export default {
-name: "deletePopup",
-  data(){
-  return{
-      deleteDialog : true
+  name: "deletePopup",
+  data() {
+    return {
+      isLoading: false,
+      dialog: false,
+      project: {}
     }
+  },
+  methods: {
+    ...mapActions('projects', ["requestDeleteProject"]),
+    async deleteList() {
+      this.isLoading = true
+      await this.requestDeleteProject({$axios: this.$axios , id: this.project._id})
+      this.isLoading = false
+      this.dialog = false
+    }
+  },
+  watch: {
+    dialog(newValue) {
+      if (!newValue) {
+        this.project = {}
+      }
+    }
+  },
+  created() {
+    this.$nuxt.$on('toggleDeleteListPopup', (project) => {
+      console.log('toggleDeleteListPopup--->>', project)
+      this.project = project
+      this.dialog = !this.dialog
+    })
   }
 }
 </script>

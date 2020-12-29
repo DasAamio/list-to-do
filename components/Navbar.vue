@@ -19,20 +19,19 @@
                 absolute
                 bottom
                 right
-                @click="dialog = !dialog"
+                @click="$nuxt.$emit('toggleAddListPopup')"
             >
               <v-icon class="primary--text">mdi-plus</v-icon>
             </v-btn>
           </v-fab-transition>
         </template>
-        <AddPopup v-if="dialog"/>
         <v-spacer></v-spacer>
         <p class="mt-7 mr-5 white--text"><span class="font-weight-bold">
           <v-btn small icon>
             <v-icon color="white">mdi-clock</v-icon>
           </v-btn>
           Time:</span>
-          <span style="font-weight: 100">{{ moment().format('hh:mm:ssA') }}</span>
+          <span style="font-weight: 100">{{ currentTime }}</span>
         </p>
         <p class="mt-7 mr-5 white--text">
           <span class="font-weight-bold white--text">
@@ -41,7 +40,8 @@
           </v-btn> Date:</span>
           <span style="font-weight: 100">{{ new Date().toISOString().substr(0, 10) }}</span>
         </p>
-        <v-badge
+
+<!--        <v-badge
             bordered
             color="error"
             content="1"
@@ -75,7 +75,33 @@
             </v-list>
           </v-menu>
 
-        </v-badge>
+        </v-badge>-->
+
+        <v-menu
+            bottom
+            left
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+                dark
+                icon
+                class="mr-5 mt-2"
+                large
+                v-bind="attrs"
+                v-on="on"
+            >
+              <v-icon>mdi-account</v-icon>
+            </v-btn>
+          </template>
+
+          <v-list>
+            <v-list-item
+                @click="logout()"
+            >
+              <v-list-item-title>Log Out</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
       </v-toolbar>
       <v-navigation-drawer v-model="drawer" app class="blue">
@@ -108,15 +134,14 @@
 
 <script>
 import Drawer from "./Drawer";
-import AddPopup from "./AddPopup";
-let moment = require('moment');
+import { mapActions } from 'vuex'
 export default {
 
   name: "Navbar",
-  components: {Drawer, AddPopup},
+  components: {Drawer},
   data() {
     return {
-      moment: moment,
+      currentTime: '',
       dialog: false,
       drawer: false,
       links: [
@@ -130,6 +155,20 @@ export default {
         {title: 'Due List', route: '/DueListPage'},
         {title: 'Due List', route: '/DueListPage'}
       ],
+    }
+  },
+  timers: {
+    updateCurrentTime: {time: 1000, autostart: true, repeat: true}
+  },
+  methods: {
+    ...mapActions('auth', ['performLogoutUser']),
+    async logout() {
+      await this.performLogoutUser()
+      this.$router.push('/login')
+    },
+    updateCurrentTime() {
+      this.currentTime = this.moment().format('hh:mm:ssA')
+
     }
   }
 }

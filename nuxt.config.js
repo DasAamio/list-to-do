@@ -30,6 +30,18 @@ export default {
   ** https://nuxtjs.org/guide/plugins
   */
   plugins: [
+    {
+      src: '~/plugins/localStorage.js',
+      ssr: false
+    },
+    {
+      src: '~/plugins/moment.js',
+      ssr: false
+    },
+    {
+      src: '~/plugins/vue-timers.js',
+      ssr: false
+    }
   ],
   /*
   ** Auto import components
@@ -45,8 +57,7 @@ export default {
   /*
   ** Nuxt.js modules
   */
-  modules: [
-  ],
+  modules: ['@nuxtjs/axios'],
   /*
   ** vuetify module configuration
   ** https://github.com/nuxt-community/vuetify-module
@@ -69,7 +80,7 @@ export default {
     }
   },
   server: {
-    port: 3000, // default: 3000
-    host: '192.168.100.7'
+    port: 4000, // default: 3000
+    // host: '192.168.100.7'
   }
 }
